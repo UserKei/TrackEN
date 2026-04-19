@@ -1,6 +1,7 @@
 import { fileURLToPath, URL } from "node:url";
 
 import { defineConfig } from "vite";
+import tailwindcss from "@tailwindcss/vite";
 import vue from "@vitejs/plugin-vue";
 import vueDevTools from "vite-plugin-vue-devtools";
 import { Conifg } from "@en/config";
@@ -10,7 +11,7 @@ export default defineConfig({
   server: {
     port: Conifg.ports.web,
   },
-  plugins: [vue(), vueDevTools()],
+  plugins: [vue(), vueDevTools(), tailwindcss()],
   resolve: {
     alias: {
       "@": fileURLToPath(new URL("./src", import.meta.url)),
