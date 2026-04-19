@@ -4,41 +4,41 @@ import {
   Injectable,
   NestInterceptor,
 } from '@nestjs/common';
-import { Observable, map } from 'rxjs';
+import { map, Observable } from 'rxjs';
 
-const transformBigInt = (data: any) => {
-  if (typeof data === 'bigint') {
-    return data.toString();
+// 将bigint转换为字符串，并保留日期类型不变
+const transformBigInt = (obj: any) => {
+  if (typeof obj === 'bigint') {
+    return obj.toString();
   }
-
-  if (Array.isArray(data)) {
-    return data.map(transformBigInt);
+  if (Array.isArray(obj)) {
+    return obj.map(transformBigInt);
   }
-
-  if (typeof data === 'object' && data !== null) {
-    if (data instanceof Date) return data;
+  if (obj !== null && typeof obj === 'object') {
+    if (obj instanceof Date) {
+      return obj;
+    }
     return Object.fromEntries(
-      Object.entries(data).map(([key, value]) => [key, transformBigInt(value)]),
+      Object.entries(obj).map(([key, value]) => [key, transformBigInt(value)]),
     );
   }
-
-  return data;
+  return obj;
 };
 
 @Injectable()
 export class InterceptorInterceptor implements NestInterceptor {
   intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
     const ctx = context.switchToHttp();
-    const request = ctx.getRequest<Request>();
+    const request = ctx.getRequest();
     return next.handle().pipe(
-      map((data: unknown) => {
+      map((data) => {
         return {
           timestamp: new Date().toISOString(),
-          data: data,
           path: request.url,
-          message: 'success',
-          code: 200,
+          message: data?.message || '请求成功',
+          code: data?.code || 200,
           success: true,
+          data: transformBigInt(data?.data) ?? null,
         };
       }),
     );

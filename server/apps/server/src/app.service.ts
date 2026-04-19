@@ -5,6 +5,6 @@ import { PrismaService } from '@libs/shared';
 export class AppService {
   constructor(private readonly prisma: PrismaService) {}
   getHello(): string {
-    return this.prisma.getTest();
+    return 'Hello World!';
   }
 }
