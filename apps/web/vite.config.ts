@@ -10,6 +10,12 @@ import { Conifg } from "@en/config";
 export default defineConfig({
   server: {
     port: Conifg.ports.web,
+    proxy: {
+      "/api": {
+        target: `http://localhost:${Conifg.ports.server}`,
+        changeOrigin: true,
+      },
+    },
   },
   plugins: [vue(), vueDevTools(), tailwindcss()],
   resolve: {
