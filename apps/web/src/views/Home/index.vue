@@ -1,6 +1,6 @@
 <template>
   <div class="w-[1200px] mx-auto mt-10 pb-30">
-    <!-- 🎯 背景区域 -->
+    <!-- 背景区域 -->
     <div class="relative flex justify-between rounded-[20px] p-9">
       <div class="absolute inset-0 bg-linear-to-r from-gray-900 via-gray-900 to-gray-900/70 rounded-[20px]" />
       <div class="relative z-8 p-8">
@@ -15,17 +15,15 @@
         </div>
       </div>
       <div class="relative z-8 p-8">
-
+        <Hologram />
       </div>
     </div>
-
-    <!-- 📖 描述区域 -->
+    <!-- 描述区域 -->
     <div class="rounded-[20px] p-10 text-center">
       <div class="text-2xl text-why font-bold text-gray-800">为什么选择我们?</div>
       <div class="text-1xl text-why-content font-bold text-gray-600 mt-4">我们经过科学的验证，AI学习英语的效果比传统学习方式更好，更高效。</div>
     </div>
-
-    <!-- 📊 数据统计区域 -->
+    <!-- 数据统计区域 -->
     <div class="mt-16 py-12 flex items-center justify-between">
       <template v-for="(item, index) in stats" :key="item.label">
         <div class="flex-1 text-center">
@@ -38,8 +36,6 @@
         <div v-if="index < stats.length - 1" class="w-px h-16 bg-gray-200" />
       </template>
     </div>
-
-    <!-- ✨ 核心优势区域 -->
     <div class="relative text-center py-8 mb-6">
       <!-- 装饰性光晕背景 -->
       <div
@@ -57,8 +53,6 @@
         </div>
       </div>
     </div>
-
-    <!-- 🃏 特性卡片区域 -->
     <div class="grid cards-container grid-cols-3 gap-6" style="perspective: 1000px">
       <div v-for="(item, index) in abouts" :key="item.title"
         class="about-card group relative overflow-hidden rounded-[24px] p-8 cursor-pointer transition-all duration-500 hover:-translate-y-2 bg-white border border-gray-200 hover:border-indigo-300 hover:shadow-xl hover:shadow-indigo-500/10"
@@ -86,13 +80,17 @@
 
 
 <script setup lang="ts">
-const stats = [
+import Hologram from './components/Hologram.vue'
+import { gsap } from 'gsap'
+import { ScrollTrigger } from 'gsap/ScrollTrigger'
+import { onMounted, reactive } from 'vue'
+gsap.registerPlugin(ScrollTrigger)
+const stats = reactive([
   { value: 0, suffix: '+', label: '累计学员', target: 1000000 },
   { value: 0, suffix: '+', label: '精品课程', target: 500 },
   { value: 0, suffix: '%', label: '学员满意度', target: 98 },
   { value: 0, suffix: '+', label: '学习时长(小时)', target: 5000000 }
-]
-
+])
 const abouts = [
   {
     icon: '🖼️',
@@ -110,4 +108,92 @@ const abouts = [
     content: '基于艾宾浩斯遗忘曲线，智能安排复习计划，让单词真正记住。'
   },
 ]
+
+const initProject = () => {
+  //数字滚动动画
+  stats.forEach((item) => {
+    gsap.to(item, {
+      value: item.target, //目标值
+      duration: 2, //持续时间
+      ease: 'power2.inOut', //过度动画
+    })
+  })
+  //卡片过度
+  const cards = gsap.utils.toArray('.about-card') as HTMLElement[]
+  console.log(cards)
+  cards.forEach((card, index) => {
+    gsap.fromTo(card,
+      {
+        opacity: 0,
+        y: 40,
+        scale: 0.98,
+      },
+      {
+        opacity: 1,
+        y: 0,
+        scale: 1,
+        duration: 0.5,
+        delay: index * 0.08,
+        ease: 'power2.out',
+        scrollTrigger: {
+          trigger: '.cards-container',
+          start: 'top 75%',
+        }
+      })
+  })
+  //文字过度
+  gsap.fromTo('.text-why', {
+    opacity: 0,
+    y: 60,
+  }, {
+    opacity: 1,
+    y: 0,
+  })
+  gsap.fromTo('.text-why-content', {
+    opacity: 0,
+    y: 60,
+  }, {
+    opacity: 1,
+    y: 0,
+  })
+  //核心优势文字过度
+  gsap.fromTo('.text-core', {
+    opacity: 0,
+    y: 60,
+  }, {
+    opacity: 1,
+    y: 0,
+    scrollTrigger: {
+      trigger: '.text-core',
+      start: 'top 70%',
+    }
+  })
+  gsap.fromTo('.core-title', {
+    opacity: 0,
+    y: 60,
+  }, {
+    opacity: 1,
+    y: 0,
+    scrollTrigger: {
+      trigger: '.core-title',
+      start: 'top 70%',
+    }
+  })
+  gsap.fromTo('.core-content', {
+    opacity: 0,
+    y: 60,
+  }, {
+    opacity: 1,
+    y: 0,
+    scrollTrigger: {
+      trigger: '.core-content',
+      start: 'top 70%',
+    }
+  })
+}
+
+onMounted(() => {
+  initProject()
+})
+
 </script>
