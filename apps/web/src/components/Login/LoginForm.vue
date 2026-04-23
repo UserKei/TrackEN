@@ -6,7 +6,8 @@
 
   <el-form ref="formRef" :model="form" :rules="rules" class="space-y-6">
     <el-form-item prop="phone">
-      <el-input v-model="form.phone" placeholder="请输入手机号" size="large" class="h-12" :prefix-icon="User" />
+      <el-input :maxlength="11" v-model="form.phone" placeholder="请输入手机号" size="large" class="h-12"
+        :prefix-icon="User" />
     </el-form-item>
 
     <el-form-item prop="password">
@@ -26,9 +27,18 @@
 
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, useTemplateRef, toRaw } from 'vue'
 import { User, Lock } from '@element-plus/icons-vue'
-const form = ref({
+import { login } from '@/apis/user'
+import type { UserLogin } from '@en/common/user'
+import md5 from 'md5'
+import type { FormInstance } from 'element-plus'
+import { ElMessage } from 'element-plus'
+import { useUserStore } from '@/stores/user'
+import { useLogin } from '@/hooks/useLogin'
+const { hide } = useLogin()
+const formRef = useTemplateRef<FormInstance>('formRef')
+const form = ref<UserLogin>({
   phone: '',
   password: '',
 })
@@ -43,7 +53,19 @@ const rules = {
   ],
 }
 
-const handleLogin = () => {
-  console.log(form.value)
+const handleLogin = async () => {
+  await formRef.value?.validate()
+  const res = await login({
+    ...toRaw(form.value),
+    password: md5(toRaw(form.value.password)),
+  })
+
+  if (res.code === 200) {
+    useUserStore().setUser(res.data)
+    ElMessage.success('登录成功')
+    hide()
+  } else {
+    ElMessage.error(res.message || '登录失败')
+  }
 }
 </script>

@@ -8,7 +8,8 @@
       <el-input v-model="form.name" placeholder="请输入用户名" size="large" class="h-12" :prefix-icon="User" />
     </el-form-item>
     <el-form-item prop="phone">
-      <el-input v-model="form.phone" placeholder="请输入手机号" size="large" class="h-12" :prefix-icon="User" />
+      <el-input :maxlength="11" v-model="form.phone" placeholder="请输入手机号" size="large" class="h-12"
+        :prefix-icon="User" />
     </el-form-item>
     <el-form-item prop="email">
       <el-input v-model="form.email" placeholder="请输入邮箱(可选)" size="large" class="h-12" :prefix-icon="User" />
@@ -29,9 +30,18 @@
 
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, toRaw, useTemplateRef } from 'vue'
 import { User, Lock } from '@element-plus/icons-vue'
-const form = ref({
+import { register } from '@/apis/user'
+import type { UserRegister } from '@en/common/user'
+import md5 from 'md5'
+import type { FormInstance } from 'element-plus'
+import { ElMessage } from 'element-plus'
+import { useUserStore } from '@/stores/user'
+import { useLogin } from '@/hooks/useLogin'
+const { hide } = useLogin()
+const formRef = useTemplateRef<FormInstance>('formRef')
+const form = ref<UserRegister>({
   name: '',
   phone: '',
   email: '',
@@ -53,7 +63,19 @@ const rules = {
   ],
 }
 
-const handleRegister = () => {
+const handleRegister = async () => {
+  await formRef.value?.validate()
+  const res = await register({
+    ...toRaw(form.value),
+    password: toRaw(md5(form.value.password)),
+  })
 
+  if (res.code === 200) {
+    useUserStore().setUser(res.data)
+    ElMessage.success('注册成功，请登录')
+    hide()
+  } else {
+    ElMessage.error(res.message || '注册失败')
+  }
 }
 </script>
