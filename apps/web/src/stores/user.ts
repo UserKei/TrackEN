@@ -1,6 +1,6 @@
 import { ref, computed } from "vue";
 import { defineStore } from "pinia";
-import type { WebResultUser } from "@en/common/user";
+import type { WebResultUser, Token } from "@en/common/user";
 
 export const useUserStore = defineStore(
   "user",
@@ -8,6 +8,15 @@ export const useUserStore = defineStore(
     const user = ref<WebResultUser | null>(null); // 用户信息
     const setUser = (params: WebResultUser) => {
       user.value = params;
+    };
+
+    // 获取 accessToken
+    const getAccessToken = computed(() => user.value?.token.accessToken);
+    // 获取 refreshToken
+    const getRefreshToken = computed(() => user.value?.token.refreshToken);
+    // 更新 token 信息
+    const updateToken = (newToken: Token) => {
+      user.value!.token = newToken;
     };
 
     const getUser = computed(() => user.value); // 获取用户信息
@@ -19,6 +28,9 @@ export const useUserStore = defineStore(
       setUser,
       getUser,
       logout,
+      getAccessToken,
+      getRefreshToken,
+      updateToken,
     };
   },
   { persist: true },
