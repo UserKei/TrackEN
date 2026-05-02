@@ -29,6 +29,9 @@ model User {
   email           String?          @unique // 邮箱
   phone           String           @unique // 手机号
   address         String? // 地址
+  bio             String? // 个人简介
+  isTimeTask      Boolean          @default(false) // 是否开启定时任务
+  timeTaskTime    String           @default("00:00:00") // 定时任务时间
   password        String // 密码
   avatar          String? // 头像
   wordNumber      Int              @default(0) // 单词数量
