@@ -1,6 +1,23 @@
-import { Controller, Post, Body } from '@nestjs/common';
+/// <reference types="multer" />
+import {
+  Controller,
+  Post,
+  Body,
+  UploadedFile,
+  UseInterceptors,
+  UseGuards,
+  Req,
+} from '@nestjs/common';
 import { UserService } from './user.service';
-import type { UserLogin, UserRegister, Token } from '@en/common/user';
+import type {
+  UserLogin,
+  UserRegister,
+  Token,
+  UserUpdate,
+} from '@en/common/user';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { AuthGuard } from '@libs/shared/auth/auth.guard';
+import type { Request } from 'express';
 
 @Controller('user')
 export class UserController {
@@ -22,5 +39,20 @@ export class UserController {
   @Post('refresh-token')
   refreshToken(@Body() createUserDto: Omit<Token, 'accessToken'>) {
     return this.userService.refreshToken(createUserDto);
+  }
+
+  // 上传头像
+  @Post('upload-avatar')
+  @UseInterceptors(FileInterceptor('file'))
+  uploadAvatar(@UploadedFile() file: Express.Multer.File) {
+    return this.userService.uploadAvatar(file);
+  }
+
+  // 更新用户
+  @UseGuards(AuthGuard) // 需要认证才能访问
+  @Post('update-user')
+  updateUser(@Body() updateUserDto: UserUpdate, @Req() req: Request) {
+    const user = req.user;
+    return this.userService.updateUser(updateUserDto, user);
   }
 }

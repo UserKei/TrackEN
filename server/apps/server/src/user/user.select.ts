@@ -10,4 +10,17 @@ export const userSelect = {
   createdAt: true,
   updatedAt: true,
   lastLoginAt: true,
+  bio: true,
+  isTimingTask: true,
+  timingTaskTime: true,
+};
+
+export const updateUserSelect = {
+  name: true,
+  email: true,
+  address: true,
+  avatar: true,
+  bio: true,
+  isTimingTask: true,
+  timingTaskTime: true,
 };

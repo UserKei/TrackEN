@@ -23,7 +23,7 @@ export type UserRegister = Pick<User, "name" | "phone" | "email" | "password">;
 //返回的类型,不包含密码
 export type ResultUser = Omit<User, "password">;
 // 更新用户的类型
-export type UpdateUser = Pick<
+export type UserUpdate = Pick<
   User,
   | "name"
   | "email"

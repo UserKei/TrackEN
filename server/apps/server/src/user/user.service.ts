@@ -6,12 +6,16 @@ import type {
   UserRegister,
   Token,
   RefreshTokenPayload,
+  UserUpdate,
 } from '@en/common/user';
 import { PrismaService, ResponseService } from '@libs/shared';
 import type { Prisma } from '@libs/shared/generated/prisma/client';
 import { AuthService } from '../auth/auth.service';
 import { JwtService } from '@nestjs/jwt';
-import { userSelect } from './user.select';
+import { userSelect, updateUserSelect } from './user.select';
+import { ConfigService } from '@nestjs/config';
+import { MinioService } from '@libs/shared/minio/minio.service';
+import type { Request } from 'express';
 @Injectable()
 export class UserService {
   constructor(
@@ -19,6 +23,8 @@ export class UserService {
     private readonly responseService: ResponseService,
     private readonly authService: AuthService,
     private readonly jwtService: JwtService,
+    private readonly configService: ConfigService,
+    private readonly minioService: MinioService,
   ) {}
   //登录
   async login(createUserDto: UserLogin) {
@@ -128,5 +134,55 @@ export class UserService {
       console.error(error);
       return this.responseService.error(null, 'refreshToken已过期或无效');
     }
+  }
+  // 上传头像
+  async uploadAvatar(file: Express.Multer.File) {
+    if (!file) {
+      return this.responseService.error(null, '文件不存在');
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      return this.responseService.error(null, '文件大小不能超过5MB');
+    }
+    // 获取客户端
+    const client = this.minioService.getClient();
+    // 获取bucket
+    const bucket = this.minioService.getBucket();
+
+    const fileName = `${Date.now()}-${file.originalname}`;
+    await client.putObject(bucket, fileName, file.buffer, file.size, {
+      'Content-Type': file.mimetype,
+    });
+
+    // 获取文件的URL
+    const isHttps = !!Number(this.configService.get('MINIO_USE_SSL')); //是否启用SSL
+    const baseUrl = isHttps ? 'https' : 'http'; //前缀http
+    const port = this.configService.get<string>('MINIO_PORT')!; //端口9000
+    const databaseUrl = `/${bucket}/${fileName}`; //数据库url /avatar/1234567890-xiaomansdas.jpg
+    const previewUrl = `${baseUrl}://${this.configService.get('MINIO_ENDPOINT')}:${port}${databaseUrl}`;
+    //previewUrl->http://192.168.2.100:9000/avatar/1234567890-xiaomansdas.jpg
+    //databaseUrl->/avatar/1234567890-xiaomansdas.jpg
+    return this.responseService.success({
+      previewUrl,
+      databaseUrl,
+    });
+  }
+  // 更新用户
+  async updateUser(updateUserDto: UserUpdate, user: Request['user']) {
+    const updatedUser = await this.prisma.user.update({
+      where: {
+        id: user.userId, // 使用从token中获取的用户ID
+      },
+      data: {
+        name: updateUserDto.name,
+        email: updateUserDto.email,
+        address: updateUserDto.address,
+        avatar: updateUserDto.avatar,
+        bio: updateUserDto.bio,
+        isTimingTask: updateUserDto.isTimingTask,
+        timingTaskTime: updateUserDto.timingTaskTime,
+      },
+      select: updateUserSelect,
+    });
+    return this.responseService.success(updatedUser);
   }
 }
