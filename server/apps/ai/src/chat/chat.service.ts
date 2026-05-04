@@ -2,7 +2,7 @@ import { Injectable, OnModuleInit } from '@nestjs/common';
 import { createDeepSeek, createCheckpoint } from '../llm/llm.config';
 import { PostgresSaver } from '@langchain/langgraph-checkpoint-postgres';
 import type { ChatRoleType, ChatDto } from '@en/common/chat';
-import type { ReactAgent } from 'langchain';
+import type { AIMessageChunk, ReactAgent } from 'langchain';
 import { chatMode } from '../prompt/prompt.mode';
 import { createAgent } from 'langchain';
 import { ResponseService } from '@libs/shared';
@@ -52,9 +52,15 @@ export class ChatService implements OnModuleInit {
 
   async findAll(userId: string, role: ChatRoleType) {
     const message = await this.checkpointer.get({
-      configurable: {
-        thread_id: `${userId}-${role}`,
-      },
+      configurable: { thread_id: `${userId}-${role}` },
     });
+    const list = message?.channel_values?.messages as AIMessageChunk[];
+    if (!list) return this.responseService.success([]); // 如果历史记录为空，直接返回空数组
+    return this.responseService.success(
+      list.map((item) => ({
+        content: item.content,
+        role: item.type,
+      })),
+    );
   }
 }
