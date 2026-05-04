@@ -1,6 +1,6 @@
 import { ref, computed } from "vue";
 import { defineStore } from "pinia";
-import type { WebResultUser, Token } from "@en/common/user";
+import type { WebResultUser, Token, UpdateUser } from "@en/common/user";
 
 export const useUserStore = defineStore(
   "user",
@@ -18,6 +18,28 @@ export const useUserStore = defineStore(
     const updateToken = (newToken: Token) => {
       user.value!.token = newToken;
     };
+    // 更新用户信息
+    const updateUser = (params: UpdateUser) => {
+      user.value!.name = params.name;
+      user.value!.email = params.email;
+      user.value!.address = params.address;
+      user.value!.avatar = params.avatar;
+      user.value!.bio = params.bio;
+      user.value!.isTimingTask = params.isTimingTask;
+      user.value!.timingTaskTime = params.timingTaskTime;
+    };
+
+    const getUpdateUserInfo = computed<UpdateUser>(() => {
+      return {
+        name: user.value!.name,
+        email: user.value!.email,
+        address: user.value!.address,
+        avatar: user.value!.avatar,
+        bio: user.value!.bio,
+        isTimingTask: user.value!.isTimingTask,
+        timingTaskTime: user.value!.timingTaskTime,
+      };
+    });
 
     const getUser = computed(() => user.value); // 获取用户信息
     const logout = () => {
@@ -31,6 +53,8 @@ export const useUserStore = defineStore(
       getAccessToken,
       getRefreshToken,
       updateToken,
+      updateUser,
+      getUpdateUserInfo,
     };
   },
   { persist: true },

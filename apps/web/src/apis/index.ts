@@ -4,6 +4,7 @@ import router from "@/router";
 import { refreshTokenApi } from "./auth";
 import { ElMessage } from "element-plus";
 
+export const uploadUrl = import.meta.env.DEV ? "http://127.0.0.1:9000" : "";
 export const timeout = 50000;
 export const serverApi = axios.create({
   baseURL: "/api/v1",
