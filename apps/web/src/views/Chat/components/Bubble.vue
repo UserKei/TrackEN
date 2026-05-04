@@ -27,13 +27,13 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, useTemplateRef, watch, nextTick } from 'vue';
 import { Position } from '@element-plus/icons-vue'
 import type { ChatMessageList } from '@en/common/chat'
-import { fetchEventSource } from '@microsoft/fetch-event-source'
-import { useUserStore } from '@/stores/user';
+import { marked } from 'marked'
 
-const userStore = useUserStore()
+const emits = defineEmits(['onSendMessage'])
+const chatRef = useTemplateRef<HTMLDivElement>('chatRef')
 const props = defineProps<{
   list?: ChatMessageList
 }>()
@@ -41,19 +41,23 @@ const props = defineProps<{
 const message = ref<string>('') // 发送内容
 // 发送消息
 const sendMessage = () => {
-  const userId = userStore.getUser?.id
-  fetchEventSource('ai/v1/chat', {
-    method: 'POST',
-    body: JSON.stringify({
-      role: 'normal',
-      content: message.value,
-      userId: userId,
-    })
-  })
+  if (!message.value.trim()) return;
+  emits('onSendMessage', message.value)
+  message.value = ''
 }
 
 // 解析markdown为HTML
 const parseMarkdown = (content: string) => {
-
+  if (!content) return '';
+  return marked.parse(content);
 }
+
+watch(() => props.list, () => {
+  nextTick(() => {
+    chatRef.value?.scrollIntoView({ behavior: 'smooth' })
+  })
+}, {
+  immediate: true,
+  deep: true,
+})
 </script>

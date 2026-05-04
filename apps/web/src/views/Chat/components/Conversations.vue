@@ -15,16 +15,20 @@ import type { ChatMode, ChatModeList } from '@en/common/chat';
 import { ref, onMounted } from 'vue'
 import { getChatMode } from '@/apis/chat';
 
+const emits = defineEmits(['onGetRole'])
 const chatMode = ref<ChatModeList>([]) // 消息模式列表
 const active = ref<string | null>(null) // 当前激活的消息模式id
 
 const changeActive = (value: ChatMode) => {
   active.value = value.id
+  emits('onGetRole', value.role) // 派发 role
 }
 
 const getChatModeList = async () => {
   const res = await getChatMode()
   chatMode.value = res.data
+  active.value = res.data[0]!.id;
+  emits('onGetRole', res.data[0]!.role) // 派发 role
 }
 
 onMounted(() => {
