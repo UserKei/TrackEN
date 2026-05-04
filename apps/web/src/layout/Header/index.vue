@@ -50,7 +50,7 @@ const router = useRouter()
 const currentPath = ref('')
 const routes = [
     { path: '/', name: '主页', icon: HomeFilled, isAuth: false }, // 不需要登陆
-    { path: '/smart/chat', name: 'AI', icon: MagicStick, isAuth: true }, // 需要登陆
+    { path: '/chat/index', name: '聊天', icon: MagicStick, isAuth: true }, // 需要登陆
     { path: '/word-book/index', name: '词库', icon: Notebook, isAuth: false }, // 不需要登陆
     { path: '/courses/index', name: '课程', icon: Reading, isAuth: false }, // 不需要登陆
     { path: '/setting/index', name: '设置', icon: Setting, isAuth: true }, // 需要登陆
