@@ -3,11 +3,14 @@ import { AiModule } from './ai.module';
 import { InterceptorInterceptor } from '@libs/shared/interceptor/interceptor';
 import { InterceptorExceptionFilterFilter } from '@libs/shared/interceptor/exception-filter';
 import { Conifg } from '@en/config';
+import { VersioningType } from '@nestjs/common';
 
 async function bootstrap() {
   const app = await NestFactory.create(AiModule);
   app.useGlobalInterceptors(new InterceptorInterceptor());
   app.useGlobalFilters(new InterceptorExceptionFilterFilter());
+  app.setGlobalPrefix('ai');
+  app.enableVersioning({ type: VersioningType.URI, defaultVersion: '1' });
   await app.listen(Conifg.ports.ai);
 }
 bootstrap();
