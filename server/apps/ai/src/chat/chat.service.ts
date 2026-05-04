@@ -10,7 +10,7 @@ import { ResponseService } from '@libs/shared';
 @Injectable()
 export class ChatService implements OnModuleInit {
   constructor(private readonly responseService: ResponseService) {}
-  private checkpointer: PostgresSaver;
+  private checkpointer!: PostgresSaver;
   private agents: Map<ChatRoleType, ReactAgent> = new Map();
 
   async onModuleInit() {

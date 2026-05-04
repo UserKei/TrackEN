@@ -24,5 +24,6 @@
   "[jsonc]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode"
   },
-  "editor.tabSize": 2
+  "editor.tabSize": 2,
+  "typescript.tsdk": "./server/node_modules/typescript/lib"
 }
