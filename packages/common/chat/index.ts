@@ -5,10 +5,13 @@ export type ChatRoleType =
   | "business"
   | "qilinge"
   | "xiaoman"; // 角色类型
+export type ChatMessageType = "reasoning" | "chat"; //消息类型 webSearch: 联网搜索 reasoning: 推理 chat: 聊天
 //历史记录所返回的对象
 export type ChatMessage = {
   role: ChatRole; // 角色 human: 人类 ai: 机器人
-  content: string; // 内容
+  content: string; // chat 内容
+  reasoning?: string; // 推理过程
+  type: ChatMessageType; // 消息类型 webSearch: 联网搜索 reasoning: 推理 chat: 聊天
 };
 //历史记录
 export type ChatMessageList = ChatMessage[];
@@ -22,6 +25,8 @@ export type ChatMode = {
 export type ChatModeList = ChatMode[]; //返回角色列表
 //发送消息所需要的对象
 export type ChatDto = {
+  deepThink: boolean; // 是否深度思考
+  webSearch: boolean; // 是否联网搜索
   role: ChatRoleType; // 角色
   content: string; // 内容
   userId: string; // 用户id
