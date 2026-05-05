@@ -10,7 +10,7 @@ import Bubble from './components/Bubble.vue';
 import { useUserStore } from '@/stores/user';
 import { ref } from 'vue';
 import { getChatHistory } from '@/apis/chat';
-import { ChatDto, ChatMessage, type ChatMessageList, type ChatRoleType } from '@en/common/chat';
+import type { ChatDto, ChatMessage, ChatMessageList, ChatRoleType } from '@en/common/chat';
 import { sse, CHAT_URL } from '@/apis/sse';
 
 const userStore = useUserStore()
@@ -24,25 +24,33 @@ const getRole = async (params: ChatRoleType) => {
   list.value = res.data
 }
 
-const sendMessage = (message: string) => {
+const sendMessage = (message: string, deepThink: boolean, webSearch: boolean) => {
   // console.log("message", message)
   list.value.push({
     role: 'human',
     content: message,
+    type: 'chat',
   }) // 添加用户消息到列表
   list.value.push({
     role: 'ai',
     content: '',
+    reasoning: '',
+    type: 'chat',
   }) // 预先添加AI消息占位，后续通过SSE更新内容
   sse<ChatMessage, ChatDto>(CHAT_URL, "POST", {
     role: role.value,
     content: message,
     userId: userId!,
+    deepThink: deepThink,
+    webSearch: webSearch,
   }, (data) => {
     console.log("sendMessage data", data)
     const lastMessage = list.value[list.value.length - 1]
     if (lastMessage && lastMessage.role === 'ai') {
-      lastMessage.content += data.content // 实时更新AI消息内容
+      if (data.type === 'reasoning')
+        lastMessage.reasoning += data.content
+      if (data.type === 'chat')
+        lastMessage.content += data.content // 实时更新AI消息内容
     }
   })
 }
