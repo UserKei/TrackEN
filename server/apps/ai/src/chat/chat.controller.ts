@@ -17,8 +17,16 @@ export class ChatController {
     for await (const chunk of stream) {
       // console.log('chunk', chunk);
       const [msg] = chunk;
+      // 深度思考返回的内容不再content里面
+      const thinkMsg = msg.additional_kwargs?.reasoning_content;
+      if (thinkMsg) {
+        res.write(
+          `data: ${JSON.stringify({ content: thinkMsg, role: 'ai', type: 'reasoning' })}\n\n`,
+        ); // SSE 格式发送消息
+      }
+      const content = msg.content ?? '';
       res.write(
-        `data: ${JSON.stringify({ content: msg.content, role: 'ai' })}\n\n`,
+        `data: ${JSON.stringify({ content: content, role: 'ai', type: 'chat' })}\n\n`,
       ); // SSE 格式发送消息
     }
     res.end();

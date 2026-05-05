@@ -1,5 +1,10 @@
 import { Injectable, OnModuleInit } from '@nestjs/common';
-import { createDeepSeek, createCheckpoint } from '../llm/llm.config';
+import {
+  createDeepSeek,
+  createCheckpoint,
+  createBochaSearch,
+  createDeepSeekReasoner,
+} from '../llm/llm.config';
 import { PostgresSaver } from '@langchain/langgraph-checkpoint-postgres';
 import type { ChatRoleType, ChatDto } from '@en/common/chat';
 import type { AIMessageChunk, ReactAgent } from 'langchain';
@@ -11,32 +16,37 @@ import { ResponseService } from '@libs/shared';
 export class ChatService implements OnModuleInit {
   constructor(private readonly responseService: ResponseService) {}
   private checkpointer!: PostgresSaver;
-  private agents: Map<ChatRoleType, ReactAgent> = new Map();
 
   async onModuleInit() {
     // 1. 初始化 checkpoint
     this.checkpointer = await createCheckpoint(); // 幂等性
-    // 2. 创建多个 Agent
-    for (const mode of chatMode) {
-      const agent = createAgent({
-        model: createDeepSeek(), // 模型
-        systemPrompt: mode.prompt, // 系统提示词
-        checkpointer: this.checkpointer, // 检查点
-      });
-      this.agents.set(mode.role, agent); // 存储 Agent 实例 Map 中
-    }
   }
 
-  streamCompletion(createChatDto: ChatDto) {
-    // role -> normal | ...
-    // userId -> number
-    // content -> string
-    // 1. 通过 role 获取对应的 Agent
-    const agent = this.agents.get(createChatDto.role);
-    if (!agent) {
-      throw new Error(`No agent found for role: ${createChatDto.role}`);
+  async streamCompletion(createChatDto: ChatDto) {
+    const promptObject = chatMode.find(
+      (item) => item.role === createChatDto.role,
+    );
+    if (!promptObject) {
+      throw new Error(`No prompt found for role: ${createChatDto.role}`);
     }
-    // 2. 组装消息格式
+    // base prompt
+    let prompt = promptObject.prompt;
+    // 拼接webSearch的结果
+    if (createChatDto.webSearch) {
+      const webSearchPrompt = await createBochaSearch(createChatDto.content);
+      prompt += `请根据以下搜索结果回答问题：${webSearchPrompt}(并且返回你参考的网站名称)，用户问题：${createChatDto.content}`;
+    }
+
+    let model = createDeepSeek();
+    if (createChatDto.deepThink) {
+      model = createDeepSeekReasoner();
+    }
+    const agent = createAgent({
+      model: model,
+      systemPrompt: prompt,
+      checkpointer: this.checkpointer,
+    });
+    // 组装消息格式
     const id = `${createChatDto.userId}-${createChatDto.role}`;
     const stream = agent.stream(
       {
@@ -60,6 +70,7 @@ export class ChatService implements OnModuleInit {
       list.map((item) => ({
         content: item.content,
         role: item.type,
+        reasoning: item.additional_kwargs?.reasoning_content, // 推理内容
       })),
     );
   }
