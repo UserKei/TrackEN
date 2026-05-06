@@ -7,6 +7,7 @@ import { JwtModule } from '@nestjs/jwt';
 import { Conifg } from '@en/config';
 import { config } from 'dotenv';
 import { MinioModule } from './minio/minio.module';
+import { PayModule } from './pay/pay.module';
 
 @Global()
 @Module({
@@ -18,6 +19,7 @@ import { MinioModule } from './minio/minio.module';
     ConfigModule,
     JwtModule,
     MinioModule,
+    PayModule,
   ],
   imports: [
     PrismaModule,
@@ -32,6 +34,7 @@ import { MinioModule } from './minio/minio.module';
       }),
     }),
     MinioModule,
+    PayModule,
   ],
 })
 export class SharedModule {}
