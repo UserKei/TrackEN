@@ -8,6 +8,7 @@ import { AuthService } from './auth/auth.service';
 import { AuthModule } from './auth/auth.module';
 import { CourseModule } from './course/course.module';
 import { PayModule } from './pay/pay.module';
+import { SocketModule } from './socket/socket.module';
 
 @Module({
   imports: [
@@ -17,6 +18,7 @@ import { PayModule } from './pay/pay.module';
     AuthModule,
     CourseModule,
     PayModule,
+    SocketModule,
   ],
   controllers: [AppController],
   providers: [AppService, AuthService],

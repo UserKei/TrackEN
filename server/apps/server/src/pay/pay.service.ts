@@ -1,3 +1,6 @@
+/* eslint-disable @typescript-eslint/no-unsafe-call */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 import { Injectable } from '@nestjs/common';
 import type { CreatePayDto } from '@en/common/pay';
 import type { TokenPayload } from '@en/common/user';
@@ -102,7 +105,7 @@ export class PayService {
         },
       });
       //加一个通知前端socket
-      this.socketGateway.emitPaymentSuccess(body.userId);
+      await this.socketGateway.emitPaymentSuccess(body.userId);
     });
     return true;
   }
