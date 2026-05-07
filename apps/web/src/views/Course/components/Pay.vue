@@ -63,18 +63,35 @@
 
 <script setup lang="ts">
 import type { Course } from '@en/common/course';
-import { ref } from 'vue';
+import { ref, watch } from 'vue';
 import { ElMessage } from 'element-plus';
 import { uploadUrl } from '@/apis';
 import type { CreatePayDto } from '@en/common/pay';
 import { createPay } from '@/apis/pay';
+import { useSocket } from '@/hooks/useSocket';
 
+const { getSocket } = useSocket()
 const modelValue = defineModel<boolean>('modelValue', { required: true });
 const props = defineProps<{
   course: Course | null
 }>()
 const isPay = ref(false); // 是否正在支付中
 const timeExpire = ref(0); // 支付剩余时间（毫秒）
+
+watch(modelValue, (newVal) => {
+  const socket = getSocket()
+  if (newVal) {
+    socket?.on('paymentSuccess', () => {
+      ElMessage.success({
+        message: '支付成功',
+        duration: 10000,
+      })
+      close()
+    });
+  } else {
+    socket?.off('paymentSuccess');
+  }
+})
 
 const tips = () => {
   ElMessage.error('支付时间已到，请重新下单');
