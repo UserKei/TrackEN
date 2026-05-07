@@ -1,15 +1,7 @@
-import {
-  Controller,
-  Get,
-  Post,
-  Body,
-  Patch,
-  Param,
-  Delete,
-} from '@nestjs/common';
+import { Controller, Get, Req, UseGuards } from '@nestjs/common';
 import { CourseService } from './course.service';
-import { CreateCourseDto } from './dto/create-course.dto';
-import { UpdateCourseDto } from './dto/update-course.dto';
+import type { Request } from 'express';
+import { AuthGuard } from '@libs/shared/auth/auth.guard';
 
 @Controller('course')
 export class CourseController {
@@ -18,5 +10,11 @@ export class CourseController {
   @Get('list')
   findAll() {
     return this.courseService.findAll();
+  }
+
+  @UseGuards(AuthGuard)
+  @Get('my')
+  findMy(@Req() req: Request) {
+    return this.courseService.findMy(req.user.userId);
   }
 }

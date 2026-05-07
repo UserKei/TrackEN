@@ -8,6 +8,11 @@
         <p class="mt-3 text-zinc-500 text-sm max-w-md mx-auto">一次购买，长期有效 · 覆盖高考、考研、四六级、托福雅思等</p>
       </header>
 
+      <el-tabs type="card" v-model="currentTab" @tab-change="getList">
+        <el-tab-pane name="list" label="精选课程"></el-tab-pane>
+        <el-tab-pane v-if="userStore.user?.id" name="my" label="我的课程"></el-tab-pane>
+      </el-tabs>
+
       <!-- 课程卡片 3 列 -->
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         <article v-for="item in list" :key="item.id"
@@ -27,47 +32,52 @@
               <span class="text-xs text-zinc-400 truncate">讲师 {{ item.teacher }}</span>
               <span class="text-lg font-bold text-indigo-600 shrink-0">¥{{ item.price }}</span>
             </div>
-            <button type="button"
-              class="mt-4 w-full py-2.5 rounded-xl text-sm font-medium text-indigo-600 border border-indigo-200 bg-white hover:bg-indigo-50 transition-colors cursor-pointer"
-              @click="openPay(item)">
-              购买课程
+            <button type="button" @click="openPay(item)"
+              class="mt-4 w-full py-2.5 rounded-xl text-sm font-medium text-indigo-600 border border-indigo-200 bg-white hover:bg-indigo-50 transition-colors cursor-pointer">
+              {{ currentTab === 'list' ? '购买课程' : '学习课程' }}
             </button>
           </div>
         </article>
       </div>
+      <el-empty v-if="list.length === 0" description="暂无课程" />
     </div>
     <CoursePay v-model="payVisible" :course="selectedCourse" />
   </div>
 </template>
-
 <script setup lang="ts">
-import { onMounted, ref } from "vue";
-import type { CourseList } from "@en/common/course";
-import { getCourseList } from "@/apis/course";
-import { uploadUrl } from "@/apis";
-import CoursePay from "./components/Pay.vue";
-import type { Course } from "@en/common/course";
-import { useLogin } from "@/hooks/useLogin";
-
-const { login } = useLogin()
-const list = ref<CourseList>([])
-const payVisible = ref(false)
-const selectedCourse = ref<Course | null>(null)
-const imageSrc = (url: string) => uploadUrl + url
-
+import { ref, onMounted } from 'vue';
+import type { CourseList } from '@en/common/course';
+import { getCourseList, getMyCourse } from '@/apis/course';
+import { uploadUrl } from '@/apis';
+import CoursePay from './components/Pay.vue';
+import type { Course } from '@en/common/course';
+import { useLogin } from '@/hooks/useLogin';
+import { useUserStore } from '@/stores/user';
+const userStore = useUserStore();
+const currentTab = ref('list');
+const { login } = useLogin();
+const list = ref<CourseList>([]);
+const payVisible = ref(false); //控制弹框的显示
+const selectedCourse = ref<Course | null>(null); //选中的课程
 const getList = async () => {
-  const res = await getCourseList()
-  list.value = res.data
+  if (currentTab.value === 'list') {
+    const res = await getCourseList();
+    list.value = res.data;
+  } else {
+    const res = await getMyCourse();
+    list.value = res.data;
+  }
 }
-
-// 打开支付弹框
+//打开支付弹框
 const openPay = async (course: Course) => {
-  await login()
-  selectedCourse.value = course
-  payVisible.value = true
+  await login();
+  payVisible.value = true;
+  selectedCourse.value = course;
 }
-
+const imageSrc = (url: string) => {
+  return uploadUrl + url;
+}
 onMounted(() => {
-  getList()
+  getList();
 })
 </script>
