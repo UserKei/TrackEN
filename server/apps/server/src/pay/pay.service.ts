@@ -105,7 +105,7 @@ export class PayService {
         },
       });
       //加一个通知前端socket
-      await this.socketGateway.emitPaymentSuccess(body.userId);
+      this.socketGateway.emitPaymentSuccess(body.userId);
     });
     return true;
   }
