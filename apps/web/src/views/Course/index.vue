@@ -53,6 +53,9 @@ import CoursePay from './components/Pay.vue';
 import type { Course } from '@en/common/course';
 import { useLogin } from '@/hooks/useLogin';
 import { useUserStore } from '@/stores/user';
+import { useRouter } from 'vue-router';
+
+const router = useRouter();
 const userStore = useUserStore();
 const currentTab = ref('list');
 const { login } = useLogin();
@@ -71,8 +74,12 @@ const getList = async () => {
 //打开支付弹框
 const openPay = async (course: Course) => {
   await login();
-  payVisible.value = true;
-  selectedCourse.value = course;
+  if (currentTab.value === 'list') {
+    payVisible.value = true;
+    selectedCourse.value = course;
+  } else {
+    router.push(`/course/learn/${course.id}/${course.name}`)
+  }
 }
 const imageSrc = (url: string) => {
   return uploadUrl + url;

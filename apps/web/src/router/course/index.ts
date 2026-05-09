@@ -9,6 +9,10 @@ export default [
         path: "index",
         component: () => import("@/views/Course/index.vue"),
       },
+      {
+        path: "learn/:courseId/:title",
+        component: () => import("@/views/Course/Learn/index.vue"),
+      },
     ],
   },
 ];
