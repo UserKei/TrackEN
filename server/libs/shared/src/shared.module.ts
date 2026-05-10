@@ -4,10 +4,11 @@ import { PrismaModule } from './prisma/prisma.module';
 import { ResponseModule } from './response/response.module';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
-import { Conifg } from '@en/config';
-import { config } from 'dotenv';
 import { MinioModule } from './minio/minio.module';
 import { PayModule } from './pay/pay.module';
+import { EmailModule } from './email/email.module';
+import { BullModule } from '@nestjs/bullmq';
+import { config } from 'dotenv';
 
 @Global()
 @Module({
@@ -20,11 +21,22 @@ import { PayModule } from './pay/pay.module';
     JwtModule,
     MinioModule,
     PayModule,
+    EmailModule,
   ],
   imports: [
     PrismaModule,
     ResponseModule,
     ConfigModule.forRoot({ isGlobal: true, envFilePath: '.env' }),
+    BullModule.forRootAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (configService: ConfigService) => ({
+        connection: {
+          host: configService.get('REDIS_HOST'),
+          port: Number(configService.get('REDIS_PORT')),
+        },
+      }),
+    }),
     JwtModule.registerAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
@@ -35,6 +47,7 @@ import { PayModule } from './pay/pay.module';
     }),
     MinioModule,
     PayModule,
+    EmailModule,
   ],
 })
 export class SharedModule {}
