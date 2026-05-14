@@ -10,6 +10,7 @@ import { CourseModule } from './course/course.module';
 import { PayModule } from './pay/pay.module';
 import { SocketModule } from './socket/socket.module';
 import { LearnModule } from './learn/learn.module';
+import { TrackerModule } from './tracker/tracker.module';
 
 @Module({
   imports: [
@@ -21,6 +22,7 @@ import { LearnModule } from './learn/learn.module';
     PayModule,
     SocketModule,
     LearnModule,
+    TrackerModule,
   ],
   controllers: [AppController],
   providers: [AppService, AuthService],
