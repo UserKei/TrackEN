@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <h1>Tracker</h1>
+    <button>click</button>
+    <button>
+      <span>ElementPlus</span>
+    </button>
+    <hr />
+    <button onclick="history.pushState({}, '', '/home')">pushState</button>
+    <button onclick="history.replaceState({}, '', '/home')">
+      replaceState
+    </button>
+    <button onclick="location.hash = '#/home'">hashchange</button>
+    <button onclick="history.back()">back</button>
+    <button onclick="history.forward()">forward</button>
+    <script src="./index.ts" type="module"></script>
+  </body>
+</html>

@@ -1,0 +1,32 @@
+{
+  "name": "@en/tracker",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/tracker.js",
+      "require": "./dist/tracker.cjs",
+      "default": "./dist/tracker.js"
+    }
+  },
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "module",
+  "devDependencies": {
+    "vite": "^8.0.12",
+    "vite-plugin-dts": "^5.0.0"
+  },
+  "dependencies": {
+    "@en/common": "workspace:*",
+    "@fingerprintjs/fingerprintjs": "^5.2.0",
+    "ua-parser-js": "^2.0.9",
+    "web-vitals": "^5.2.0"
+  }
+}
