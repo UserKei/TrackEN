@@ -17,7 +17,7 @@ const initThree = () => {
   const scene = new THREE.Scene()
   //动画混合器
   let mixer: THREE.AnimationMixer | null = null
-  const clock = new THREE.Clock() //创建时钟
+  const clock = new THREE.Timer() //创建时钟
   //创建相机
   const camera = new THREE.PerspectiveCamera(75, 500 / 250, 0.1, 1000)
   camera.position.set(0, 0, 10)

@@ -42,7 +42,7 @@ const registerClass = computed(() => {
 const emits = defineEmits(['changeType'])
 
 const scene = new THREE.Scene()
-const clock = new THREE.Clock()
+const clock = new THREE.Timer()
 let currentModel: THREE.Group | null = null
 let mixer: THREE.AnimationMixer | null = null
 const LoadModels = (url: LoginType) => {
