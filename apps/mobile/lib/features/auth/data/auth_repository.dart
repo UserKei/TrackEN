@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/network/api_client.dart';
@@ -59,4 +60,40 @@ class AuthRepository {
   }
 
   Future<void> logout() => _tokenStore.clear();
+
+  Future<String> uploadAvatar(String filePath) async {
+    final formData = FormData.fromMap({
+      'file': await MultipartFile.fromFile(filePath),
+    });
+    final response = await _apiClient.server.post<dynamic>(
+      '/user/upload-avatar',
+      data: formData,
+    );
+    final parsed = await _apiClient.parseResponse<String>(response, (json) {
+      final map = json as Map<String, dynamic>? ?? const {};
+      return map['databaseUrl'] as String? ?? '';
+    });
+    return parsed.data;
+  }
+
+  Future<AppUser> updateUser(AppUser user) async {
+    final response = await _apiClient.server.post<dynamic>(
+      '/user/update-user',
+      data: {
+        'name': user.name,
+        'email': user.email,
+        'address': user.address,
+        'avatar': user.avatar,
+        'bio': user.bio,
+        'isTimingTask': user.isTimingTask,
+        'timingTaskTime': user.timingTaskTime,
+      },
+    );
+    final parsed = await _apiClient.parseResponse<AppUser>(
+      response,
+      (_) => user,
+    );
+    await _tokenStore.writeUser(parsed.data);
+    return parsed.data;
+  }
 }

@@ -102,4 +102,59 @@ class AuthController extends Notifier<AuthState> {
     await _repository.logout();
     state = const AuthState(isLoading: false, didRestore: true);
   }
+
+  Future<void> updateProfile({
+    required String name,
+    required String email,
+    required String address,
+    required String bio,
+    required bool isTimingTask,
+    required String timingTaskTime,
+  }) async {
+    final user = state.user;
+    final token = state.session?.token;
+    if (user == null || token == null) return;
+
+    state = state.copyWith(isLoading: true, clearError: true);
+    try {
+      final updated = await _repository.updateUser(
+        user.copyWith(
+          name: name,
+          email: email,
+          address: address,
+          bio: bio,
+          isTimingTask: isTimingTask,
+          timingTaskTime: timingTaskTime,
+        ),
+      );
+      state = AuthState(
+        isLoading: false,
+        session: UserSession(user: updated, token: token),
+        didRestore: true,
+      );
+    } catch (error) {
+      state = state.copyWith(isLoading: false, error: error.toString());
+    }
+  }
+
+  Future<void> uploadAvatar(String filePath) async {
+    final user = state.user;
+    final token = state.session?.token;
+    if (user == null || token == null) return;
+
+    state = state.copyWith(isLoading: true, clearError: true);
+    try {
+      final avatar = await _repository.uploadAvatar(filePath);
+      final updated = await _repository.updateUser(
+        user.copyWith(avatar: avatar),
+      );
+      state = AuthState(
+        isLoading: false,
+        session: UserSession(user: updated, token: token),
+        didRestore: true,
+      );
+    } catch (error) {
+      state = state.copyWith(isLoading: false, error: error.toString());
+    }
+  }
 }
