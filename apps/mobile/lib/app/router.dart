@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../features/auth/application/auth_controller.dart';
 import '../features/auth/presentation/auth_screen.dart';
 import '../features/chat/presentation/chat_screen.dart';
 import '../features/course/presentation/course_screen.dart';
@@ -11,8 +12,31 @@ import '../features/word_book/presentation/word_book_screen.dart';
 import 'app_shell.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
+  final authState = ref.watch(authControllerProvider);
+
   return GoRouter(
     initialLocation: '/',
+    redirect: (context, state) {
+      if (!authState.didRestore) return null;
+
+      final isAuthRoute = state.uri.path == '/auth';
+      final isProtectedRoute = switch (state.uri.path) {
+        '/word-book' => true,
+        final path when path.startsWith('/learn') => true,
+        _ => false,
+      };
+
+      if (!authState.isAuthenticated && isProtectedRoute) {
+        final from = Uri.encodeComponent(state.uri.toString());
+        return '/auth?from=$from';
+      }
+
+      if (authState.isAuthenticated && isAuthRoute) {
+        return state.uri.queryParameters['from'] ?? '/profile';
+      }
+
+      return null;
+    },
     routes: [
       GoRoute(
         path: '/auth',
