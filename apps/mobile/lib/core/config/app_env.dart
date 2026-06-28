@@ -35,4 +35,19 @@ class AppEnv {
     'UPLOAD_BASE_URL',
     defaultValue: 'http://127.0.0.1:9000',
   );
+
+  static const alipayAppId = String.fromEnvironment(
+    'ALIPAY_APP_ID',
+    defaultValue: '',
+  );
+
+  static const alipayUniversalLink = String.fromEnvironment(
+    'ALIPAY_UNIVERSAL_LINK',
+    defaultValue: '',
+  );
+
+  static const alipaySandbox = bool.fromEnvironment(
+    'ALIPAY_SANDBOX',
+    defaultValue: false,
+  );
 }
