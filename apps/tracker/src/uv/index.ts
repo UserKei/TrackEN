@@ -6,8 +6,8 @@ import { reportFetch } from "@/report";
 export const getBrowerInfo = () => {
   const ua = new UAParser();
   return {
-    brower: ua.getBrowser().name,
-    os: ua.getOS().name,
+    brower: ua.getBrowser().name ?? "unknown",
+    os: ua.getOS().name ?? "unknown",
     device: ua.getDevice().type || "desktop",
   };
 };

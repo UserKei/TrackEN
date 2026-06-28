@@ -19,11 +19,12 @@ export class Tracker {
     //IIFE立即执行函数
     this.initPromise = (async () => {
       let config = this.config;
-      this.visitorId = await getFingerprint(config);
-      reportEvent(this.visitorId, config);
-      reportError(this.visitorId, config);
-      reportPv(this.visitorId, config);
-      reportPerformance(this.visitorId, config);
+      const visitorId = String(await getFingerprint(config));
+      this.visitorId = visitorId;
+      reportEvent(visitorId, config);
+      reportError(visitorId, config);
+      reportPv(visitorId, config);
+      reportPerformance(visitorId, config);
     })();
     return this.initPromise;
   }

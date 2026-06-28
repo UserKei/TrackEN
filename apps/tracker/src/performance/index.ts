@@ -32,8 +32,9 @@ export const reportPerformance = async (
     lcpObserver: PerformanceObserver;
   }>((resolve) => {
     let lcpObserver = new PerformanceObserver((entryList) => {
+      const lastEntry = entryList.getEntries().at(-1);
       resolve({
-        lcpTime: entryList.getEntries().at(-1).startTime || 0,
+        lcpTime: lastEntry?.startTime || 0,
         lcpObserver,
       });
     });
