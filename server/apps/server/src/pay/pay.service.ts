@@ -176,9 +176,9 @@ export class PayService {
           data: {
             tradeNo: body.trade_no, //拿到了支付宝交易号
             tradeStatus: tradeStatus as TradeStatus, //拿到了支付状态
-            sendPayTime: body.gmt_payment
-              ? dayjs(body.gmt_payment).toDate()
-              : undefined, //拿到了支付时间
+            ...(body.gmt_payment
+              ? { sendPayTime: dayjs(body.gmt_payment).toDate() }
+              : {}), //拿到了支付时间
           },
         });
         //2.创建我的课程
