@@ -4,7 +4,6 @@
 import { ChatDeepSeek } from '@langchain/deepseek';
 import { ConfigService } from '@nestjs/config';
 import { PostgresSaver } from '@langchain/langgraph-checkpoint-postgres';
-import { config } from 'dotenv';
 
 // 1.1 deepseek 初始化
 export const createDeepSeek = () => {

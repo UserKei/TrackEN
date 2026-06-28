@@ -1,0 +1,27 @@
+{
+  "plugins": ["typescript", "react", "jsx-a11y"],
+  "env": {
+    "browser": true,
+    "node": true,
+    "es2024": true
+  },
+  "ignorePatterns": [
+    "node_modules/**",
+    "**/node_modules/**",
+    "dist/**",
+    "**/dist/**",
+    ".next/**",
+    "**/.next/**",
+    "coverage/**",
+    "**/coverage/**",
+    "server/libs/shared/src/generated/**"
+  ],
+  "rules": {
+    "no-console": "off",
+    "typescript/no-explicit-any": "off",
+    "react/react-in-jsx-scope": "off",
+    "jsx-a11y/prefer-tag-over-role": "off",
+    "jsx-a11y/click-events-have-key-events": "off",
+    "jsx-a11y/no-noninteractive-element-interactions": "off"
+  }
+}

@@ -7,6 +7,8 @@ node_modules
 **/dist
 /build
 **/build
+/.next
+**/.next
 /coverage
 **/coverage
 /.nyc_output

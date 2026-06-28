@@ -8,7 +8,6 @@ import { MinioModule } from './minio/minio.module';
 import { PayModule } from './pay/pay.module';
 import { EmailModule } from './email/email.module';
 import { BullModule } from '@nestjs/bullmq';
-import { config } from 'dotenv';
 
 @Global()
 @Module({
