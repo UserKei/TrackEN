@@ -40,7 +40,7 @@ export class LearnService {
         frq: 'desc',
       },
     });
-    this.response.success(word);
+    return this.response.success(word);
   }
 
   // 保存单词到 wordBookRecord
