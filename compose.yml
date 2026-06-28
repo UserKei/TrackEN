@@ -1,0 +1,206 @@
+name: tracken
+
+x-app-env: &app-env
+  NODE_ENV: ${NODE_ENV:-production}
+  DATABASE_URL: ${DATABASE_URL:-postgresql://tracken:change-me@postgres:5432/tracken}
+  AI_DATABASE_URL: ${AI_DATABASE_URL:-postgresql://tracken:change-me@postgres:5432/tracken}
+  REDIS_HOST: ${REDIS_HOST:-redis}
+  REDIS_PORT: ${REDIS_PORT:-6379}
+  MINIO_ENDPOINT: ${MINIO_ENDPOINT:-minio}
+  MINIO_PORT: ${MINIO_PORT:-9000}
+  MINIO_USE_SSL: ${MINIO_USE_SSL:-0}
+  MINIO_ACCESS_KEY: ${MINIO_ACCESS_KEY:-tracken}
+  MINIO_SECRET_KEY: ${MINIO_SECRET_KEY:-change-me-minio-password}
+  MINIO_BUCKET: ${MINIO_BUCKET:-tracken-assets}
+  SECRET_KEY: ${SECRET_KEY:-change-me-jwt-secret}
+  EMAIL_HOST: ${EMAIL_HOST:-smtp.example.com}
+  EMAIL_PORT: ${EMAIL_PORT:-587}
+  EMAIL_USE_SSL: ${EMAIL_USE_SSL:-0}
+  EMAIL_USER: ${EMAIL_USER:-}
+  EMAIL_PASSWORD: ${EMAIL_PASSWORD:-}
+  EMAIL_FROM: ${EMAIL_FROM:-}
+  ALIPAY_APP_ID: ${ALIPAY_APP_ID:-}
+  ALIPAY_PRIVATE_KEY: ${ALIPAY_PRIVATE_KEY:-}
+  ALIPAY_PUBLIC_KEY: ${ALIPAY_PUBLIC_KEY:-}
+  ALIPAY_GATEWAY: ${ALIPAY_GATEWAY:-https://openapi-sandbox.dl.alipaydev.com/gateway.do}
+  ALIPAY_NOTIFY_URL: ${ALIPAY_NOTIFY_URL:-http://localhost:3000}
+  DEESEEK_API_KEY: ${DEESEEK_API_KEY:-}
+  DEESEEK_API_MODEL: ${DEESEEK_API_MODEL:-deepseek-chat}
+  DEEPSEEK_REASONER_API_MODEL: ${DEEPSEEK_REASONER_API_MODEL:-deepseek-reasoner}
+  BOCHA_SEARCH_URL: ${BOCHA_SEARCH_URL:-https://api.bochaai.com/v1/web-search}
+  BOCHA_API_KEY: ${BOCHA_API_KEY:-}
+
+x-app-depends-on: &app-depends-on
+  postgres:
+    condition: service_healthy
+  redis:
+    condition: service_healthy
+  minio:
+    condition: service_healthy
+  minio-init:
+    condition: service_completed_successfully
+
+services:
+  postgres:
+    image: ${POSTGRES_IMAGE:-postgres:17-alpine}
+    profiles: ["dev", "preprod", "prod"]
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-tracken}
+      POSTGRES_USER: ${POSTGRES_USER:-tracken}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-change-me}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U \"$${POSTGRES_USER}\" -d \"$${POSTGRES_DB}\""]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+    restart: unless-stopped
+
+  redis:
+    image: ${REDIS_IMAGE:-redis:8-alpine}
+    profiles: ["dev", "preprod", "prod"]
+    command: ["redis-server", "--appendonly", "yes"]
+    ports:
+      - "${REDIS_PUBLIC_PORT:-6379}:6379"
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 5s
+    restart: unless-stopped
+
+  minio:
+    image: ${MINIO_IMAGE:-minio/minio:latest}
+    profiles: ["dev", "preprod", "prod"]
+    command: ["server", "/data", "--console-address", ":9001"]
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-tracken}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-change-me-minio-password}
+    ports:
+      - "${MINIO_API_PORT:-9000}:9000"
+      - "${MINIO_CONSOLE_PORT:-9001}:9001"
+    volumes:
+      - minio-data:/data
+    healthcheck:
+      test: ["CMD", "mc", "ready", "local"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+    restart: unless-stopped
+
+  minio-init:
+    image: ${MINIO_MC_IMAGE:-minio/mc:latest}
+    profiles: ["dev", "preprod", "prod"]
+    depends_on:
+      minio:
+        condition: service_healthy
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-tracken}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-change-me-minio-password}
+      MINIO_BUCKET: ${MINIO_BUCKET:-tracken-assets}
+    entrypoint:
+      - /bin/sh
+      - -c
+      - |
+        mc alias set tracken http://minio:9000 "$$MINIO_ROOT_USER" "$$MINIO_ROOT_PASSWORD"
+        mc mb --ignore-existing "tracken/$$MINIO_BUCKET"
+        mc anonymous set download "tracken/$$MINIO_BUCKET"
+    restart: "no"
+
+  server:
+    image: ${SERVER_IMAGE:-tracken-server:local}
+    build:
+      context: .
+      dockerfile: Dockerfile.server
+    profiles: ["preprod", "prod"]
+    environment:
+      <<: *app-env
+    command: ["node", "dist/apps/server/main.js"]
+    ports:
+      - "${SERVER_PORT:-3000}:3000"
+    depends_on: *app-depends-on
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "node -e \"fetch('http://127.0.0.1:3000/api/v1').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))\"",
+        ]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    restart: unless-stopped
+
+  ai:
+    image: ${SERVER_IMAGE:-tracken-server:local}
+    build:
+      context: .
+      dockerfile: Dockerfile.server
+    profiles: ["preprod", "prod"]
+    environment:
+      <<: *app-env
+    command: ["node", "dist/apps/ai/main.js"]
+    ports:
+      - "${AI_PORT:-3001}:3001"
+    depends_on: *app-depends-on
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "node -e \"fetch('http://127.0.0.1:3001/ai/v1').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))\"",
+        ]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    restart: unless-stopped
+
+  web:
+    image: ${WEB_IMAGE:-tracken-web:local}
+    build:
+      context: .
+      dockerfile: Dockerfile.web
+      args:
+        NEXT_PUBLIC_API_BASE_URL: ${NEXT_PUBLIC_API_BASE_URL:-http://localhost:3000/api/v1}
+        NEXT_PUBLIC_AI_BASE_URL: ${NEXT_PUBLIC_AI_BASE_URL:-http://localhost:3001/ai/v1}
+        NEXT_PUBLIC_SOCKET_URL: ${NEXT_PUBLIC_SOCKET_URL:-ws://localhost:3000}
+        NEXT_PUBLIC_UPLOAD_URL: ${NEXT_PUBLIC_UPLOAD_URL:-http://localhost:9000}
+    profiles: ["preprod", "prod"]
+    environment:
+      NODE_ENV: production
+      PORT: 8080
+      NEXT_PUBLIC_API_BASE_URL: ${NEXT_PUBLIC_API_BASE_URL:-http://localhost:3000/api/v1}
+      NEXT_PUBLIC_AI_BASE_URL: ${NEXT_PUBLIC_AI_BASE_URL:-http://localhost:3001/ai/v1}
+      NEXT_PUBLIC_SOCKET_URL: ${NEXT_PUBLIC_SOCKET_URL:-ws://localhost:3000}
+      NEXT_PUBLIC_UPLOAD_URL: ${NEXT_PUBLIC_UPLOAD_URL:-http://localhost:9000}
+    ports:
+      - "${WEB_PORT:-8080}:8080"
+    depends_on:
+      server:
+        condition: service_healthy
+      ai:
+        condition: service_healthy
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "node -e \"fetch('http://127.0.0.1:8080').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))\"",
+        ]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    restart: unless-stopped
+
+volumes:
+  postgres-data:
+  redis-data:
+  minio-data:
