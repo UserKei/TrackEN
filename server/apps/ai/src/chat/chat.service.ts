@@ -7,7 +7,7 @@ import {
 } from '../llm/llm.config';
 import { PostgresSaver } from '@langchain/langgraph-checkpoint-postgres';
 import type { ChatRoleType, ChatDto } from '@en/common/chat';
-import type { AIMessageChunk, ReactAgent } from 'langchain';
+import type { AIMessageChunk } from 'langchain';
 import { chatMode } from '../prompt/prompt.mode';
 import { createAgent } from 'langchain';
 import { ResponseService } from '@libs/shared';

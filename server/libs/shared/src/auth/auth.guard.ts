@@ -28,7 +28,7 @@ export class AuthGuard implements CanActivate {
       this.jwtService.verify<RefreshTokenPayload>(token);
       request.user = decoded; // payload 存到自定义的 user 属性上 方便后续使用
       return true;
-    } catch (error) {
+    } catch {
       throw new UnauthorizedException('token is invalid');
     }
   }
